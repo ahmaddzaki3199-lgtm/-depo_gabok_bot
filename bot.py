@@ -87,7 +87,7 @@ def tutup(message):
 
     teks = f"""LAPORAN KAS HARIAN
     
- {tanggal}
+{tanggal}
 
 Transaksi Hari Ini
 
