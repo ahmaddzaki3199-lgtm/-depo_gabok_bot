@@ -34,8 +34,6 @@ f"""{tanggal}
 
 PENCATATAN TRANSAKSI HARI INI DIMULAI.
 
-👊🏻Semangat kejar omset hari ini👊🏻
-
 Format transaksi:
 + "Nominal" = pemasukan
 - "Nominal" = pengeluaran
