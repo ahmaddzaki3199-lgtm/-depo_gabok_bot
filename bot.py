@@ -31,9 +31,9 @@ def mulai(message):
 
     bot.reply_to(message,
 f"""{tanggal}
-Pencatatan transaksi hari ini dimulai.
+PENCATATAN TRANSAKSI HARI INI DIMULAI.
 
-Semangat mengejar omset hari ini 💪
+👊🏻SEMANGAT MENGEJAR OMSET HARI INI👊🏻
 
 Format transaksi:
 +500000 = pemasukan
@@ -51,12 +51,12 @@ def saldo(message):
     saldo = total_pemasukan - total_pengeluaran
 
     bot.reply_to(message,
-f"""📊 Saldo Sementara
+f"""SALDO SEMENTARA
 
-💰 Total pemasukan : {rupiah(total_pemasukan)}
-💸 Total pengeluaran : {rupiah(total_pengeluaran)}
+• Total pemasukan : {rupiah(total_pemasukan)}
+• Total pengeluaran : {rupiah(total_pengeluaran)}
 
-🏦 Saldo : {rupiah(saldo)}
+    💵 Saldo : {rupiah(saldo)}
 """)
 
 
@@ -84,10 +84,10 @@ def tutup(message):
     saldo = total_pemasukan - total_pengeluaran
     tanggal = datetime.now().strftime("%d %B %Y")
 
-    teks = f"""📊 Laporan Kas Harian
-📅 {tanggal}
+    teks = f"""LAPORAN KAS HARI INI
+ {tanggal}
 
-🧾 Transaksi Hari Ini
+Transaksi Hari Ini
 
 """
 
@@ -97,9 +97,9 @@ def tutup(message):
     teks += f"""
 ━━━━━━━━━━━━
 
-💰 Total pemasukan : {rupiah(total_pemasukan)}
-💸 Total pengeluaran : {rupiah(total_pengeluaran)}
-🏦 Saldo akhir : {rupiah(saldo)}
+• Total pemasukan : {rupiah(total_pemasukan)}
+• Total pengeluaran : {rupiah(total_pengeluaran)}
+    💵 Saldo akhir : {rupiah(saldo)}
 
 ✅ Pencatatan hari ini ditutup
 """
@@ -126,10 +126,10 @@ def transaksi_handler(message):
         saldo = total_pemasukan - total_pengeluaran
 
         bot.reply_to(message,
-f"""✅ Pemasukan dicatat
+f"""🟢 Pemasukan dicatat
 {rupiah(jumlah)}
 
-💰 Total pemasukan saat ini
+    💰 Total pemasukan saat ini
 {rupiah(saldo)}
 """)
 
@@ -142,10 +142,10 @@ f"""✅ Pemasukan dicatat
         saldo = total_pemasukan - total_pengeluaran
 
         bot.reply_to(message,
-f"""💸 Pengeluaran dicatat
+f"""🔴 Pengeluaran dicatat
 {rupiah(jumlah)}
 
-💰 Total pemasukan saat ini
+    💰 Total pemasukan saat ini
 {rupiah(saldo)}
 """)
 
