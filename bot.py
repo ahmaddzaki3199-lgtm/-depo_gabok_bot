@@ -1,168 +1,154 @@
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+import telebot
 from datetime import datetime
 
-active = False
-transactions = []
+TOKEN = "TOKEN_BOT_KAMU"
 
-def format_rupiah(n):
-    return "Rp{:,.0f}".format(n).replace(",", ".")
+bot = telebot.TeleBot(TOKEN)
 
-async def mulai(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global active, transactions
-    active = True
-    transactions = []
+total_pemasukan = 0
+total_pengeluaran = 0
+transaksi = []
+aktif = False
 
-    today = datetime.now().strftime("%d %B %Y")
 
-    text = f"""
-📅 {today}
+def rupiah(angka):
+    return "Rp{:,.0f}".format(angka).replace(",", ".")
 
-📊 Pencatatan transaksi hari ini dimulai.
-Semangat mengejar omset hari ini! 💪
 
+@bot.message_handler(commands=['mulai'])
+def mulai(message):
+    global aktif, total_pemasukan, total_pengeluaran, transaksi
+
+    if message.chat.type not in ['group', 'supergroup']:
+        return
+
+    aktif = True
+    total_pemasukan = 0
+    total_pengeluaran = 0
+    transaksi = []
+
+    tanggal = datetime.now().strftime("%d %B %Y")
+
+    bot.reply_to(message,
+f"""{tanggal}
+Pencatatan transaksi hari ini dimulai.
+
+Semangat mengejar omset hari ini 💪
+
+Format transaksi:
++500000 = pemasukan
+-200000 = pengeluaran
+
+Perintah:
+/saldo
+/riwayat
+/tutup
+""")
+
+
+@bot.message_handler(commands=['saldo'])
+def saldo(message):
+    saldo = total_pemasukan - total_pengeluaran
+
+    bot.reply_to(message,
+f"""📊 Saldo Sementara
+
+💰 Total pemasukan : {rupiah(total_pemasukan)}
+💸 Total pengeluaran : {rupiah(total_pengeluaran)}
+
+🏦 Saldo : {rupiah(saldo)}
+""")
+
+
+@bot.message_handler(commands=['riwayat'])
+def riwayat(message):
+    if not transaksi:
+        bot.reply_to(message, "Belum ada transaksi hari ini.")
+        return
+
+    teks = "🧾 Transaksi Hari Ini\n\n"
+
+    for i, t in enumerate(transaksi, start=1):
+        teks += f"{i}. {t}\n"
+
+    bot.reply_to(message, teks)
+
+
+@bot.message_handler(commands=['tutup'])
+def tutup(message):
+    global aktif
+
+    if not aktif:
+        return
+
+    saldo = total_pemasukan - total_pengeluaran
+    tanggal = datetime.now().strftime("%d %B %Y")
+
+    teks = f"""📊 Laporan Kas Harian
+📅 {tanggal}
+
+🧾 Transaksi Hari Ini
+
+"""
+
+    for i, t in enumerate(transaksi, start=1):
+        teks += f"{i}. {t}\n"
+
+    teks += f"""
 ━━━━━━━━━━━━
 
-💰 Transaksi
-+nominal → pemasukan
--nominal → pengeluaran
+💰 Total pemasukan : {rupiah(total_pemasukan)}
+💸 Total pengeluaran : {rupiah(total_pengeluaran)}
+🏦 Saldo akhir : {rupiah(saldo)}
 
-📊 Menu
-/saldo → cek saldo
-/riwayat → riwayat transaksi
-/tutup → laporan harian
+✅ Pencatatan hari ini ditutup
 """
-    await update.message.reply_text(text)
 
-async def saldo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    income = sum(t for t in transactions if t > 0)
-    expense = abs(sum(t for t in transactions if t < 0))
-    balance = income - expense
+    bot.reply_to(message, teks)
 
-    text = f"""
-📊 Saldo Sementara
+    aktif = False
 
-💰 Total pemasukan : {format_rupiah(income)}
-💸 Total pengeluaran : {format_rupiah(expense)}
 
-🏦 Saldo : {format_rupiah(balance)}
-"""
-    await update.message.reply_text(text)
+@bot.message_handler(func=lambda message: True)
+def transaksi_handler(message):
+    global total_pemasukan, total_pengeluaran
 
-async def riwayat(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    if not transactions:
-        await update.message.reply_text("Belum ada transaksi hari ini.")
+    if not aktif:
         return
 
-    msg = "📜 Riwayat Transaksi\n\n"
+    text = message.text.replace(".", "").replace("Rp", "")
 
-    for i,t in enumerate(transactions,1):
-        if t > 0:
-            msg += f"{i}. +{t}\n"
-        else:
-            msg += f"{i}. {t}\n"
+    if text.startswith("+"):
+        jumlah = int(text[1:])
+        total_pemasukan += jumlah
+        transaksi.append(f"+{rupiah(jumlah)[2:]}")
 
-    await update.message.reply_text(msg)
+        saldo = total_pemasukan - total_pengeluaran
 
-async def hapus(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        bot.reply_to(message,
+f"""✅ Pemasukan dicatat
+{rupiah(jumlah)}
 
-    if not transactions:
-        await update.message.reply_text("⚠️ Tidak ada transaksi yang bisa dihapus.")
-        return
-
-    last = transactions.pop()
-
-    await update.message.reply_text(f"""
-🗑 Transaksi terakhir dihapus
-
-Transaksi:
-{last}
-
-Saldo diperbarui.
+💰 Total pemasukan saat ini
+{rupiah(saldo)}
 """)
 
-async def tutup(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global active
 
-    income = sum(t for t in transactions if t > 0)
-    expense = abs(sum(t for t in transactions if t < 0))
-    balance = income - expense
+    elif text.startswith("-"):
+        jumlah = int(text[1:])
+        total_pengeluaran += jumlah
+        transaksi.append(f"-{rupiah(jumlah)[2:]}")
 
-    msg = "📊 Laporan Kas Harian\n"
-    msg += datetime.now().strftime("📅 %d %B %Y\n\n")
+        saldo = total_pemasukan - total_pengeluaran
 
-    msg += "🧾 Transaksi Hari Ini\n\n"
+        bot.reply_to(message,
+f"""💸 Pengeluaran dicatat
+{rupiah(jumlah)}
 
-    for i,t in enumerate(transactions,1):
-        if t > 0:
-            msg += f"{i}. +{t}\n"
-        else:
-            msg += f"{i}. {t}\n"
-
-    msg += "\n━━━━━━━━━━━━\n\n"
-
-    msg += f"💰 Total pemasukan : {format_rupiah(income)}\n"
-    msg += f"💸 Total pengeluaran : {format_rupiah(expense)}\n"
-    msg += f"🏦 Saldo akhir : {format_rupiah(balance)}\n\n"
-
-    msg += "✅ Pencatatan hari ini ditutup"
-
-    active = False
-
-    await update.message.reply_text(msg)
-
-async def transaksi(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    if not active:
-        return
-
-    text = update.message.text
-
-    try:
-
-        if text.startswith("+"):
-            value = int(text[1:])
-            transactions.append(value)
-
-            await update.message.reply_text(f"""
-✅ Pemasukan dicatat
-{format_rupiah(value)}
+💰 Total pemasukan saat ini
+{rupiah(saldo)}
 """)
 
-        elif text.startswith("-"):
-            value = int(text[1:])
-            transactions.append(-value)
 
-            await update.message.reply_text(f"""
-💸 Pengeluaran dicatat
-{format_rupiah(value)}
-""")
-
-        else:
-
-            await update.message.reply_text("""
-⚠️ Format transaksi tidak dikenali.
-
-Gunakan format:
-+nominal → pemasukan
--nominal → pengeluaran
-
-Contoh:
-+500000
--100000
-""")
-
-    except:
-        pass
-
-app = ApplicationBuilder().token("8765242023:AAFjnoUrJZIba-IioG9neG5HpuD7PF6Uk84").build()
-
-app.add_handler(CommandHandler("mulai", mulai))
-app.add_handler(CommandHandler("saldo", saldo))
-app.add_handler(CommandHandler("riwayat", riwayat))
-app.add_handler(CommandHandler("hapus", hapus))
-app.add_handler(CommandHandler("tutup", tutup))
-app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), transaksi))
-
-app.run_polling()
+print("Bot berjalan...")
+bot.infinity_polling()
