@@ -31,13 +31,14 @@ def mulai(message):
 
     bot.reply_to(message,
 f"""{tanggal}
+
 PENCATATAN TRANSAKSI HARI INI DIMULAI.
 
-👊🏻SEMANGAT MENGEJAR OMSET HARI INI👊🏻
+👊🏻Semangat kejar omset hari ini👊🏻
 
 Format transaksi:
-+500000 = pemasukan
--200000 = pengeluaran
++ "Nominal" = pemasukan
+- "Nominal" = pengeluaran
 
 Perintah:
 /saldo
@@ -56,7 +57,7 @@ f"""SALDO SEMENTARA
 • Total pemasukan : {rupiah(total_pemasukan)}
 • Total pengeluaran : {rupiah(total_pengeluaran)}
 
-    💵 Saldo : {rupiah(saldo)}
+💵 Saldo : {rupiah(saldo)}
 """)
 
 
@@ -84,7 +85,8 @@ def tutup(message):
     saldo = total_pemasukan - total_pengeluaran
     tanggal = datetime.now().strftime("%d %B %Y")
 
-    teks = f"""LAPORAN KAS HARI INI
+    teks = f"""LAPORAN KAS HARIAN
+    
  {tanggal}
 
 Transaksi Hari Ini
@@ -99,9 +101,9 @@ Transaksi Hari Ini
 
 • Total pemasukan : {rupiah(total_pemasukan)}
 • Total pengeluaran : {rupiah(total_pengeluaran)}
-    💵 Saldo akhir : {rupiah(saldo)}
+💵 Saldo akhir : {rupiah(saldo)}
 
-✅ Pencatatan hari ini ditutup
+⛔️ Pencatatan hari ini ditutup
 """
 
     bot.reply_to(message, teks)
@@ -129,7 +131,7 @@ def transaksi_handler(message):
 f"""🟢 Pemasukan dicatat
 {rupiah(jumlah)}
 
-    💰 Total pemasukan saat ini
+💰 Total pemasukan saat ini
 {rupiah(saldo)}
 """)
 
@@ -145,7 +147,7 @@ f"""🟢 Pemasukan dicatat
 f"""🔴 Pengeluaran dicatat
 {rupiah(jumlah)}
 
-    💰 Total pemasukan saat ini
+💰 Total pemasukan saat ini
 {rupiah(saldo)}
 """)
 
